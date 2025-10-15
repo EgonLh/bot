@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Webhook
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 import uvicorn
@@ -49,6 +49,7 @@ async def add_task(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         chat_id = update.effective_chat.id
 
+        # Schedule the reminder
         scheduler.add_job(
             send_reminder,
             trigger="date",
@@ -82,7 +83,6 @@ app = FastAPI()
 async def telegram_webhook(update: dict):
     """Receives Telegram updates via webhook"""
     from telegram import Update
-    from telegram.ext import Application
     update_obj = Update.de_json(update, application.bot)
     await application.update_queue.put(update_obj)
     return {"ok": True}
@@ -105,7 +105,6 @@ async def main():
 
     logging.info("Bot started with Webhook ✅")
     await application.start()
-    await application.updater.start_polling()  # optional fallback
     await application.idle()
 
 if __name__ == "__main__":
